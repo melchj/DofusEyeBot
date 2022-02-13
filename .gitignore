@@ -136,3 +136,4 @@ output/*
 saved/*
 processed/*
 *.sqlite
+temp.png

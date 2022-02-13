@@ -3,6 +3,8 @@ import os
 import discord
 from discord.ext import commands
 from discord.message import Message
+from readScreenshot import readDofusScreenshot
+import cv2
 
 bot = commands.Bot(command_prefix='%', case_insensitive=True)
 
@@ -10,41 +12,42 @@ monitor_channels = []
 output_channel = 0
 
 
-async def processAttachment(attachment, message:Message):
+async def processScreenshot(attachment, message:Message):
     # get the ID to use (from backend)
-    fightID = getNextFightID()
-    path = f"saved/{message.guild.id}/{message.channel.id}/{fightID}.png"
-    processedPath = f"temp.png"
-    # formatting the message send datetime to ISO 8601 for file name
-    # print(formattedDatetime)
-    # TODO: deal with potential exceptions from attachment.save (see docs)
-    # TODO: save it in the right format (png/jpeg/jpg) (https://stackoverflow.com/questions/62375567/how-to-check-for-file-extension-in-discord-py)
+    # fightID = getNextFightID()
+    fightID = 1
+    # TODO: need to save it with the right extension? not always png??
+    # https://stackoverflow.com/questions/62375567/how-to-check-for-file-extension-in-discord-py
+    # path = f"saved/{message.guild.id}/{message.channel.id}/{fightID}.png"
+    tempPath = 'temp.png'
+    # path = f"{fightID}.png"
+    # processedPath = f"temp.png"
 
     # save the image file
-    await attachment.save(path, use_cached=True)
+    await attachment.save(tempPath, use_cached=True)
 
     # analyze screenshot and send info (display typing indicator)
     outputChannel = bot.get_channel(output_channel)
     orignalChannel = message.channel
     async with orignalChannel.typing():
         # read the screenshot and save the processed image
-        img, fight = readDofusScreenshot(path)
-        cv2.imwrite(processedPath, img)
+        img, fight = readDofusScreenshot(tempPath)
+        cv2.imwrite(tempPath, img)
 
         # update the fight object with info from the discord message
         fight.guildId = message.guild.id
         fight.channelId = message.channel.id
-        fight.date = message.created_at + timedelta(hours=2) # discord api returns UTC time. Dofus time is UTC+2hr (TODO: does this ever change with daylight savings?)
+        fight.date = message.created_at # NOTE: discord message.created_at is in UTC. dofus time is UTC+2hr
 
         # store the fight data in DB, get back the inserted fight ID
-        fightID = storeFight(fight)
+        # fightID = storeFight(fight)
         fight.id = fightID
 
         # get formatted embed object from fight object
         (embed, _imgFile) = fight.getEmbed(outputChannel.guild.icon_url, False)
 
         # attach the processed image and send embed
-        imgFile = discord.File(processedPath, filename='fight.png')
+        imgFile = discord.File(tempPath, filename='fight.png')
         embed.set_image(url='attachment://fight.png')
         await outputChannel.send(embed=embed, file=imgFile)
 
@@ -104,7 +107,7 @@ async def processMessage(message:Message):
 
     for attachment in message.attachments:
         if attachment.filename.lower().endswith(extensions):
-            processAttachment(attachment, message)
+            await processScreenshot(attachment, message)
 
 @bot.command()
 async def ping(ctx):
@@ -124,19 +127,18 @@ async def on_ready():
 
     return await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Dofus'))
 
-# @bot.event
-# async def on_message(message:Message):
-#     # ignore message if it comes from this bot
-#     if message.author.id == bot.user.id:
-#         return
+@bot.event
+async def on_message(message:Message):
+    # ignore message if it comes from this bot
+    if message.author.id == bot.user.id:
+        return
     
-#     # look at messages in monitored channels
-#     if message.channel.id in monitor_channels:
-#         # await processMessage(message)
-#         print('message in monitored channel ;)')
+    # look at messages in monitored channels
+    if message.channel.id in monitor_channels:
+        await processMessage(message)
 
-#     # process all other commands
-#     await bot.process_commands(message)
+    # process all other commands
+    await bot.process_commands(message)
 
 def main():
     # read variables from .env file
