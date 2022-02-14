@@ -73,97 +73,37 @@ class Fight:
             embed.set_image(url='attachment://fight.png')
 
         return (embed, imgFile)
-    
-    # def toList(self) -> list:
-    #     """
-    #     this is supposed to mirror the "fromQueryResult" and turn this fight object into a flat list to be stored somewhere
-    #     """
-    #     result = list()
-    #     result.append(self.id)
-    #     result.append(self.modified)
-    #     result.append(self.guildId)
-    #     result.append(self.channelId)
-    #     if self.date is None:
-    #         result.append(None)
-    #     else:
-    #         result.append(int(self.date.timestamp()))
-    #     result.append(self.filePath)
-    #     result.append(self.sword)
 
-    #     # now add the next 30 items from the players
-    #     # (i know this isn't the most efficient way to loop through these, but who cares)
-    #     # loop thru all player positions
-    #     positions = ['w1', 'w2', 'w3', 'w4', 'w5', 'l1', 'l2', 'l3', 'l4', 'l5']
-    #     for pos in positions:
-    #         positionFilled = False
-    #         # loop thru list of players to see if any are in this position
-    #         for p in self.players:
-    #             # if there is a player in this position, add stuff to the result object
-    #             if p.position.lower() == pos:
-    #                 positionFilled = True
-    #                 result.append(p.characterName)
-    #                 result.append(p.characterClass)
-    #                 result.append(p.isDead)
-    #                 break
-    #         # if no player is in this position, fill with None objects
-    #         if not positionFilled:
-    #             result.append(None)
-    #             result.append(None)
-    #             result.append(None)
+    def toDict(self):
+        '''
+        returns the fight object as a dictionary object, useful to jsonify then send to backend.
+        '''
+        resp = {}
+        resp['fight_id'] = self.id
+        resp['modified'] = self.modified
+        resp['guild_id'] = self.guildId
+        resp['channel_id'] = self.channelId
+        resp['date'] = self.date.timestamp()
+        resp['file_path'] = self.filePath
+        resp['sword'] = self.sword
+
+        # loop thru all player positions
+        positions = ['w1', 'w2', 'w3', 'w4', 'w5', 'l1', 'l2', 'l3', 'l4', 'l5']
+        for pos in positions:
+            positionFilled = False
+            # loop thru list of players to see if any are in this position
+            for p in self.players:
+                # if there is a player in this position, add stuff to the response object
+                if p.position.lower() == pos:
+                    positionFilled = True
+                    resp[f"{pos}_name"] = p.characterName
+                    resp[f"{pos}_class"] = p.characterClass
+                    resp[f"{pos}_dead"] = p.isDead
+                    break
+            # if no player is in this position, fill with default values
+            if not positionFilled:
+                resp[f"{pos}_name"] = ""
+                resp[f"{pos}_class"] = ""
+                resp[f"{pos}_dead"] = 0
         
-    #     # return the big list thing
-    #     return result
-
-    # def fromQueryResult(result:list):
-    #     """
-    #     create a Fight object from a tuple from SQL query results
-    #     tuple looks like:
-    #     (
-    #         fight_id,
-    #         modified,
-    #         guild_id,
-    #         channel_id,
-    #         date,
-    #         file_path,
-    #         sword,
-    #         w1_name,
-    #         w1_class,
-    #         w1_isdead,
-    #         w2_
-    #         ...
-    #         l1_name,
-    #         l1_class,
-    #         l1_isdead,
-    #         l2_
-    #         ...
-    #     )
-
-    #     TODO: hmm... this should be renamed? I can use this to make a Fight object from any list,
-    #     either from SQL result or from json read? I think?
-    #     """
-    #     # the order of objects in the tuple is defined by the way the database is set up
-    #     (fight_id,
-    #     modified,
-    #     guild_id,
-    #     channel_id,
-    #     date,
-    #     file_path,
-    #     sword) = result[0:7]
-
-    #     # handle if date is None
-    #     if date is None:
-    #         date = 0
-
-    #     # parse the players from the last 30 parts of the tuple...
-    #     players = []
-    #     positions = ['w1', 'w2', 'w3', 'w4', 'w5', 'l1', 'l2', 'l3', 'l4', 'l5']
-    #     p = 0
-    #     for i in range(7, 36, 3):
-    #         # print(i)
-    #         if result[i] is None:
-    #             p += 1
-    #             continue
-    #         players.append(Player(positions[p], result[i], result[i+1], result[i+2]))
-    #         p += 1
-        
-    #     return Fight(fight_id, modified, guild_id, channel_id, datetime.fromtimestamp(date), file_path, sword, players)
+        return resp

@@ -1,8 +1,10 @@
+from datetime import datetime
 from dotenv.main import load_dotenv
 import os
 import discord
 from discord.ext import commands
 from discord.message import Message
+from backendService import uploadFight
 from readScreenshot import readDofusScreenshot
 import cv2
 
@@ -15,11 +17,12 @@ output_channel = 0
 async def processScreenshot(attachment, message:Message):
     # get the ID to use (from backend)
     # fightID = getNextFightID()
-    fightID = 1
     # TODO: need to save it with the right extension? not always png??
     # https://stackoverflow.com/questions/62375567/how-to-check-for-file-extension-in-discord-py
     # path = f"saved/{message.guild.id}/{message.channel.id}/{fightID}.png"
-    tempPath = 'temp.png'
+    formattedDatetime = datetime.strftime(message.created_at, '%Y%m%dT%H%M%SZ')
+    tempPath = f'temp/{formattedDatetime}.png'
+    tempProcessedPath = f'temp/{formattedDatetime}_processed.png'
     # path = f"{fightID}.png"
     # processedPath = f"temp.png"
 
@@ -32,24 +35,28 @@ async def processScreenshot(attachment, message:Message):
     async with orignalChannel.typing():
         # read the screenshot and save the processed image
         img, fight = readDofusScreenshot(tempPath)
-        cv2.imwrite(tempPath, img)
+        cv2.imwrite(tempProcessedPath, img)
 
         # update the fight object with info from the discord message
+        fight.filePath = tempPath
         fight.guildId = message.guild.id
         fight.channelId = message.channel.id
-        fight.date = message.created_at # NOTE: discord message.created_at is in UTC. dofus time is UTC+2hr
+        fight.date = message.created_at # NOTE: discord message.created_at is in UTC. (dofus time is UTC+2hr)
 
-        # store the fight data in DB, get back the inserted fight ID
-        # fightID = storeFight(fight)
-        fight.id = fightID
+        # TODO: uploadFight waits for response from backend... does this need await/asynch or something??
+        # TODO: handle if fight upload fails (returns 0)
+        fight.id = uploadFight(fight)
 
         # get formatted embed object from fight object
         (embed, _imgFile) = fight.getEmbed(outputChannel.guild.icon_url, False)
 
         # attach the processed image and send embed
-        imgFile = discord.File(tempPath, filename='fight.png')
+        imgFile = discord.File(tempProcessedPath, filename='fight.png')
         embed.set_image(url='attachment://fight.png')
         await outputChannel.send(embed=embed, file=imgFile)
+        # now that it's sent, delete the temporary processed image
+        if os.path.exists(tempProcessedPath):
+            os.remove(tempProcessedPath)
 
         # send some info back to the channel the screenshot came from
         # format winners and losers group:
