@@ -16,20 +16,14 @@ output_channel = 0
 
 async def processScreenshot(attachment, message:Message):
     # get the ID to use (from backend)
-    # fightID = getNextFightID()
     # TODO: need to save it with the right extension? not always png??
     # https://stackoverflow.com/questions/62375567/how-to-check-for-file-extension-in-discord-py
-    # path = f"saved/{message.guild.id}/{message.channel.id}/{fightID}.png"
     formattedDatetime = datetime.strftime(message.created_at, '%Y%m%dT%H%M%SZ')
     tempPath = f'temp/{formattedDatetime}.png'
     tempProcessedPath = f'temp/{formattedDatetime}_processed.png'
-    # path = f"{fightID}.png"
-    # processedPath = f"temp.png"
 
-    # save the image file
+    # save screenshot, analyze screenshot, and send info (display typing indicator)
     await attachment.save(tempPath, use_cached=True)
-
-    # analyze screenshot and send info (display typing indicator)
     outputChannel = bot.get_channel(output_channel)
     orignalChannel = message.channel
     async with orignalChannel.typing():
@@ -38,7 +32,7 @@ async def processScreenshot(attachment, message:Message):
         cv2.imwrite(tempProcessedPath, img)
 
         # update the fight object with info from the discord message
-        fight.filePath = tempPath
+        fight.filePath = tempPath # this is needed so backend service knows where the temporary image is located
         fight.guildId = message.guild.id
         fight.channelId = message.channel.id
         fight.date = message.created_at # NOTE: discord message.created_at is in UTC. (dofus time is UTC+2hr)
@@ -73,7 +67,7 @@ async def processScreenshot(attachment, message:Message):
                 winners = winners + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
             else:
                 losers = losers + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
-        
+
         # check to see if there were no losers (could be none if there was no def)
         if losers == '':
             losers = 'None'
@@ -82,6 +76,7 @@ async def processScreenshot(attachment, message:Message):
         modifiedStr = ''
         if fight.modified != 0:
             modifiedStr = '*'
+
         # format the rest of the embed object
         embed2 = discord.Embed(color=0xf5f2ca)
         embed2.add_field(name='Winners', value=winners, inline=True)
