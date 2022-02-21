@@ -1,11 +1,15 @@
 import os
+from dotenv import load_dotenv
 from fight import Fight
 import requests
 
 # TODO: is storing this token as a global variable a good way to do this? is there a better practice here?
 authToken = ''
 # TODO: figure out the base URL... env var or something
-BASE = 'http://127.0.0.1:5000'
+load_dotenv()
+BACKEND_URL = os.environ['BACKEND_URL']
+BACKEND_USER = os.environ['BACKEND_USER']
+BACKEND_PASS = os.environ['BACKEND_PASS']
 
 def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
     '''
@@ -17,7 +21,7 @@ def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
     '''
 
     response = requests.post(
-        url=BASE + '/api/fights/post',
+        url=BACKEND_URL + '/api/fights/post',
         headers={'Authorization': authToken},
         json=fight.toDict()
     )
@@ -63,12 +67,11 @@ def uploadScreenshot(presignedUrl, screenshotPath, deleteAfter=True):
 def login():
     '''login to the backend and store auth token recieved'''
     print('attempting to log in to backend...')
-    url = BASE + '/auth/login'
     response = requests.post(
-        url=url,
+        url=BACKEND_URL + '/auth/login',
         json={
-            "username": "xx",
-            "password": "xx"
+            "username": BACKEND_USER,
+            "password": BACKEND_PASS
         }
     )
 
