@@ -1,4 +1,17 @@
-#python3-opencv
+# on Heroku-18 stack, the following two lines work. tesseract 4.0.0-beta installs and runs correctly
+#tesseract-ocr
+#tesseract-ocr-eng
 
-# link to tesseract-ocr5.0.1 .deb file
-https://launchpad.net/~alex-p/+archive/ubuntu/tesseract-ocr-devel/+files/tesseract-ocr-all_5.0.1+git5905-31a96843-1ppa1~focal1_all.deb
+# the following line is not working as intended? heroku apt buildpack downloads the .deb, says "installing" then nothing happens or is installed...
+#https://launchpad.net/~alex-p/+archive/ubuntu/tesseract-ocr-devel/+files/tesseract-ocr-all_5.0.1+git5943-30ebb31f-1ppa1~bionic1_all.deb
+#https://launchpad.net/~alex-p/+archive/ubuntu/tesseract-ocr-devel/+files/tesseract-ocr_5.0.1+git5943-30ebb31f-1ppa1~bionic1_amd64.deb
+#https://launchpad.net/~alex-p/+archive/ubuntu/tesseract-ocr-devel/+files/libtesseract-dev_5.0.1+git5943-30ebb31f-1ppa1~bionic1_amd64.deb
+
+# attempting to add custom apt repo
+:repo:deb [trusted=yes] https://ppa.launchpadcontent.net/alex-p/tesseract-ocr-devel/ubuntu bionic main
+
+#liblzo2-2
+#libarchive13
+tesseract-ocr
+tesseract-ocr-eng
+#tesseract5 <-- this one crashes the build :D
