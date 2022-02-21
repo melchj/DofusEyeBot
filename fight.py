@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from dataclasses import dataclass
 import discord

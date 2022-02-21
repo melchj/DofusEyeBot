@@ -246,12 +246,12 @@ def findDofusIcons(imgPath:str):
         # make rectangles from these results, and consolidate overlaping rectangles
         rectangles = []
         for (x, y) in zip(xloc, yloc):
-            rectangles.append([x * r, y * r, iconW * r, iconH * r])
-            rectangles.append([x * r, y * r, iconW * r, iconH * r]) # duplicate to avoid groupRectangles() bug
+            rectangles.append([int(x * r), int(y * r), int(iconW * r), int(iconH * r)])
+            rectangles.append([int(x * r), int(y * r), int(iconW * r), int(iconH * r)]) # duplicate to avoid groupRectangles() bug
         rectangles, _weights = cv.groupRectangles(rectangles, 1, 0.2)
         for rect in rectangles:
-            pt1 = (int(rect[0]), int(rect[1]))
-            pt2 = (int(rect[0]+rect[2]), int(rect[1]+rect[3]))
+            pt1 = (rect[0], rect[1])
+            pt2 = (rect[0]+rect[2], rect[1]+rect[3])
             if iconName == 'dead':
                 deadResult.append(LocatedIcon(iconName, pt1[0], pt1[1], pt2[0]-pt1[0], pt2[1]-pt1[1], (0,255,255)))
             else:
