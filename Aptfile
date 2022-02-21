@@ -1,1 +1,4 @@
 #python3-opencv
+
+# link to tesseract-ocr5.0.1 .deb file
+https://launchpad.net/~alex-p/+archive/ubuntu/tesseract-ocr-devel/+files/tesseract-ocr-all_5.0.1+git5905-31a96843-1ppa1~focal1_all.deb
