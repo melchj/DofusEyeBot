@@ -24,7 +24,10 @@ fight = Fight(0, 0, 1234, 5678, datetime.now(), 'fakeFilePath.png', 'w1', player
 print('---- TEST: upload fight to backend ----')
 fightID = uploadFight(fight, upload=False)
 
-if fightID == 0:
-    print(f"some error during upload??! fightID={fightID}")
+if fightID:
+    if fightID == 0:
+        print(f"some error during upload. Fight was not uploaded!")
+    else:
+        print(f"fight uploaded with ID={fightID}")
 else:
-    print(f"fight uploaded with ID={fightID}")
+    print(f"some error during upload. Fight was not uploaded!")
