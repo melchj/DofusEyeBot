@@ -31,7 +31,7 @@ $ pip install -r requirements.txt
 ## Teseract OCR
 one of the dependacies is tesseract ocr. have to install it on the OS and then add it to PATH variable for pytesseract to work...
 
-Also, I believe certain versions of tesseract OCR work. Currently, I have this working with tesseract version v5.0.0-alpha.20210811.
+Also, I believe only certain versions of tesseract OCR work. Currently, I have this working with tesseract version v5.0.0-alpha.20210811.
 
 Installing tesseract (on linux):
 ```
