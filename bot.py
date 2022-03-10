@@ -38,58 +38,60 @@ async def processScreenshot(attachment, message:Message):
         fight.channelId = message.channel.id
         fight.date = message.created_at # NOTE: discord message.created_at is in UTC. (dofus time is UTC+2hr)
 
-        # TODO: uploadFight waits for response from backend... does this need await/asynch or something??
-        # TODO: handle if fight upload fails (returns 0)
         fight.id = uploadFight(fight)
 
-        # get formatted embed object from fight object
-        (embed, _imgFile) = fight.getEmbed(outputChannel.guild.icon_url, False)
+        # handle if fight fails to upload
+        if fight.id == 0:
+            await message.reply('an error occured while attempting to upload this fight to server :( tell chonk to look at the logs i guess')
+        else:
+            # get formatted embed object from fight object
+            (embed, _imgFile) = fight.getEmbed(outputChannel.guild.icon_url, False)
 
-        # attach the processed image and send embed
-        imgFile = discord.File(tempProcessedPath, filename='fight.png')
-        embed.set_image(url='attachment://fight.png')
-        await outputChannel.send(embed=embed, file=imgFile)
-        # now that it's sent, delete the temporary processed image
-        if os.path.exists(tempProcessedPath):
-            os.remove(tempProcessedPath)
+            # attach the processed image and send embed
+            imgFile = discord.File(tempProcessedPath, filename='fight.png')
+            embed.set_image(url='attachment://fight.png')
+            await outputChannel.send(embed=embed, file=imgFile)
+            # now that it's sent, delete the temporary processed image
+            if os.path.exists(tempProcessedPath):
+                os.remove(tempProcessedPath)
 
-        # send some info back to the channel the screenshot came from
-        # format winners and losers group:
-        winners = ''
-        losers = ''
-        for p in fight.players:
-            deadText = ''
-            swordText = ''
-            if p.isDead:
-                deadText = '*'
-            if p.position.upper() == fight.sword.upper():
-                swordText = ' [A]'
-            if (p.position[0].upper() == "W"):
-                winners = winners + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
-            else:
-                losers = losers + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
+            # send some info back to the channel the screenshot came from
+            # format winners and losers group:
+            winners = ''
+            losers = ''
+            for p in fight.players:
+                deadText = ''
+                swordText = ''
+                if p.isDead:
+                    deadText = '*'
+                if p.position.upper() == fight.sword.upper():
+                    swordText = ' [A]'
+                if (p.position[0].upper() == "W"):
+                    winners = winners + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
+                else:
+                    losers = losers + f"{p.position[1]}. ({p.characterClass}) {p.characterName}{deadText}{swordText}\n"
 
-        # check to see if there were no losers (could be none if there was no def)
-        if losers == '':
-            losers = 'None'
+            # check to see if there were no losers (could be none if there was no def)
+            if losers == '':
+                losers = 'None'
 
-        # see if fight has been modified
-        modifiedStr = ''
-        if fight.modified != 0:
-            modifiedStr = '*'
+            # see if fight has been modified
+            modifiedStr = ''
+            if fight.modified != 0:
+                modifiedStr = '*'
 
-        # format the rest of the embed object
-        embed2 = discord.Embed(color=0xf5f2ca)
-        embed2.add_field(name='Winners', value=winners, inline=True)
-        embed2.add_field(name='Losers', value=losers, inline=True)
-        embed2.add_field(name='Names are incorrect?', value=f"To make corrections, try the '%correct' command. (do '%help correct' if you are confused.) (web interface coming soon!)", inline=False)
-        # embed2.add_field(name='Duplicate?', value=f"Is this fight a duplicate of XXXXX? If no, please confirm by xxxxx. If yes, please yyyyy.", inline=False)
-        embed2.set_author(name=f"ID: {fight.id}{modifiedStr} ({fight.date.strftime('%Y-%m-%d')})", icon_url=outputChannel.guild.icon_url)
-        # embed2.set_footer(text=f"* = character is dead.\n[A] = Attacker")
-        # await message.reply(embed=embed2, mention_author=False)
+            # format the rest of the embed object
+            embed2 = discord.Embed(color=0xf5f2ca)
+            embed2.add_field(name='Winners', value=winners, inline=True)
+            embed2.add_field(name='Losers', value=losers, inline=True)
+            embed2.add_field(name='Names are incorrect?', value=f"To make corrections, try the '%correct' command. (do '%help correct' if you are confused.) (web interface coming soon!)", inline=False)
+            # embed2.add_field(name='Duplicate?', value=f"Is this fight a duplicate of XXXXX? If no, please confirm by xxxxx. If yes, please yyyyy.", inline=False)
+            embed2.set_author(name=f"ID: {fight.id}{modifiedStr} ({fight.date.strftime('%Y-%m-%d')})", icon_url=outputChannel.guild.icon_url)
+            # embed2.set_footer(text=f"* = character is dead.\n[A] = Attacker")
+            # await message.reply(embed=embed2, mention_author=False)
 
-    # show on original message that everything is done by reacting with :eye: emoji
-    await message.add_reaction(u"\U0001F441")
+            # show on original message that everything is done by reacting with :eye: emoji
+            await message.add_reaction(u"\U0001F441")
 
 async def processMessage(message:Message):
     # check to see if message includes a link with an image file extension
@@ -115,6 +117,7 @@ async def processMessage(message:Message):
 @bot.command()
 async def ping(ctx):
     await ctx.send(f'pong! {round(bot.latency * 1000)}ms')
+    print(f'pong! {round(bot.latency * 1000)}ms')
 
 @bot.event
 async def on_ready():

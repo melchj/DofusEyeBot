@@ -24,3 +24,4 @@ RUN pip install -r requirements.txt
 
 # define the command that's executes when the image is run
 CMD [ "python3", "./bot.py" ]
+# CMD [ "python3", "test_tesseract.py"]

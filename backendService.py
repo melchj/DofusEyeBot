@@ -21,32 +21,37 @@ def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
     this function returns the fight ID on successful upload
     '''
 
-    response = requests.post(
-        url=BACKEND_URL + '/api/fights/post',
-        headers={'Authorization': authToken},
-        json=fight.toDict()
-    )
-    if response.ok:
-        resp_data = response.json()
-        fightID = resp_data['fight_id']
-        print(f'fight {fightID} successfully sent to API.')
-        if upload:
-            uploadScreenshot(resp_data['upload_url'], fight.filePath)
+    try:
+        response = requests.post(
+            url=BACKEND_URL + '/api/fights/post',
+            headers={'Authorization': authToken},
+            json=fight.toDict()
+        )
+        if response.ok:
+            resp_data = response.json()
+            fightID = resp_data['fight_id']
+            print(f'fight {fightID} successfully sent to API.')
+            if upload:
+                uploadScreenshot(resp_data['upload_url'], fight.filePath)
+            else:
+                print('fight screenshot was not uploaded (as requested)')
+            return fightID
+        elif response.status_code == 401:
+            # eror 401 - unauthorised -> need to log in again, then retry upload (once)
+            print('fight not uploaded, need to log in')
+            if attemptLogin:
+                login()
+                return uploadFight(fight, upload, attemptLogin=False)
+        elif response.status_code == 403:
+            print(f'fight failed to upload to backend. status code: {response.status_code} ({response.reason})')
+            print('logged in, but these credentials do not have authorization to upload fight!')
+            return 0
         else:
-            print('fight screenshot was not uploaded (as requested)')
-        return fightID
-    elif response.status_code == 401:
-        # eror 401 - unauthorised -> need to log in again, then retry upload (once)
-        print('fight not uploaded, need to log in')
-        if attemptLogin:
-            login()
-            return uploadFight(fight, upload, attemptLogin=False)
-    elif response.status_code == 403:
-        print(f'fight failed to upload to backend. status code: {response.status_code} ({response.reason})')
-        print('logged in, but these credentials do not have authorization to upload fight!')
-        return 0
-    else:
-        print(f'fight failed to upload to backend. status code: {response.status_code} ({response.reason})')
+            print(f'fight failed to upload to backend. status code: {response.status_code} ({response.reason})')
+            return 0
+    except Exception as e:
+        print('some exception occured while attempting to post to backend server:')
+        print(e)
         return 0
 
 def uploadScreenshot(presignedUrl, screenshotPath, deleteAfter=True):
