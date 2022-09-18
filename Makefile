@@ -8,5 +8,5 @@ docker-run:
 	docker run -d dofuseye-bot
 
 publish-heroku:
-	heroku container:push worker
-	heroku container:release worker
+	heroku container:push worker --app=dofuseye-bot
+	heroku container:release worker --app=dofuseye-bot
