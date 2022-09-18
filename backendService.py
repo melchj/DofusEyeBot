@@ -90,3 +90,11 @@ def login():
         # TODO: handle come failure modes. like wrong username/pass (what others?)
         print(f"failed to log in! status code: {response.status_code} ({response.reason})")
     return
+
+def pingBackend():
+    '''checks backend server status, returns response time (ms) if response OK, else -1'''
+    response = requests.get(url=BACKEND_URL + "/api")
+    if response.ok:
+        return response.elapsed.microseconds
+    else:
+        return -1

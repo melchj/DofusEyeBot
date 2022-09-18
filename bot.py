@@ -5,7 +5,7 @@ import os
 import discord
 from discord.ext import commands
 from discord.message import Message
-from backendService import uploadFight
+from backendService import pingBackend, uploadFight
 from readScreenshot import readDofusScreenshot
 import cv2
 
@@ -117,7 +117,9 @@ async def processMessage(message:Message):
 @bot.command()
 async def ping(ctx):
     await ctx.send(f'pong! {round(bot.latency * 1000)}ms')
+    await ctx.send(f'backend pong? {pingBackend()}ms')
     print(f'pong! {round(bot.latency * 1000)}ms')
+    print(f'backend pong! {pingBackend()}ms')
 
 @bot.event
 async def on_ready():
