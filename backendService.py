@@ -11,6 +11,7 @@ load_dotenv()
 BACKEND_URL = os.environ['BACKEND_URL']
 BACKEND_USER = os.environ['BACKEND_USER']
 BACKEND_PASS = os.environ['BACKEND_PASS']
+NO_BACKEND_MODE = os.environ['NO_BACKEND_MODE']
 
 def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
     '''
@@ -20,6 +21,9 @@ def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
 
     this function returns the fight ID on successful upload
     '''
+    if NO_BACKEND_MODE == "TRUE":
+        print('fight not uploaded - NO_BACKEND_MODE enabled.')
+        return 1
 
     try:
         response = requests.post(
@@ -55,6 +59,9 @@ def uploadFight(fight:Fight, upload:bool=True, attemptLogin=True):
         return 0
 
 def uploadScreenshot(presignedUrl, screenshotPath, deleteAfter=True):
+    if NO_BACKEND_MODE == "TRUE":
+        print('screenshot not uploaded - NO_BACKEND_MODE enabled.')
+        return 1
     # upload file via presigned url
     print(f'Uploading fight screenshot to aws: {screenshotPath}')
     with open(screenshotPath, 'rb') as f:
@@ -72,6 +79,9 @@ def uploadScreenshot(presignedUrl, screenshotPath, deleteAfter=True):
 
 def login():
     '''login to the backend and store auth token recieved'''
+    if NO_BACKEND_MODE == "TRUE":
+        print('no login attempted - NO_BACKEND_MODE enabled.')
+        return 1
     print('attempting to log in to backend...')
     response = requests.post(
         url=BACKEND_URL + '/auth/login',
@@ -93,6 +103,9 @@ def login():
 
 def pingBackend():
     '''checks backend server status, returns response time (ms) if response OK, else -1'''
+    if NO_BACKEND_MODE == "TRUE":
+        print('no backend ping attempted - NO_BACKEND_MODE enabled.')
+        return -1
     response = requests.get(url=BACKEND_URL + "/api")
     if response.ok:
         return response.elapsed.microseconds

@@ -24,6 +24,8 @@ iconNames = [
     'osa_f',
     'xel_m',
     'xel_f',
+    'forge_m',
+    'forge_f',
     'elio_m',
     'elio_f',
     'masq_m',
@@ -56,6 +58,7 @@ classColors = {
     'eca':      ( 51,187,255),
     'osa':      (179, 60,  0),
     'xel':      (255,119, 51),
+    'forge':    (230, 74, 25),
     'elio':     (153,128,  0),
     'masq':     (  0, 34,204),
     'ougi':     (  0, 64,128),
@@ -401,10 +404,10 @@ def main():
     # loop through the screenshots in this directory
     screenshotDir = 'image_set_02'
     for filename in os.listdir(screenshotDir):
-        # only look at this one
-        if not filename.lower().endswith('01.png'):
-            continue
-        # only look if it's a png file
+        # skip this one if it's not the file with the specified name
+        # if not filename.lower().endswith('01.png'):
+            # continue
+        # skip this one if it's not a png file
         if not filename.lower().endswith('.png'):
             continue
 
